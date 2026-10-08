@@ -1,0 +1,143 @@
+:root {
+    --primary: #d4af37;
+    --bg: #1a1a1a;
+    --card-bg: #2d2d2d;
+    --text: #e0e0e0;
+}
+
+* {
+    box-sizing: border-box; /* Garante que o padding não quebre a largura */
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    padding: 15px;
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin: 30px 0;
+}
+
+header h1 {
+    font-size: 1.8rem;
+}
+
+header h1 span {
+    color: var(--primary);
+}
+
+/* --- AJUSTES DO CARD (FLEX PARA GRID NO MOBILE) --- */
+.config-card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    display: grid;
+    grid-template-columns: 1fr; /* Uma coluna por padrão (Mobile) */
+    gap: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    margin-bottom: 25px;
+}
+
+/* No Desktop (telas maiores que 600px), volta a ser horizontal */
+@media (min-width: 600px) {
+    .config-card {
+        grid-template-columns: 1fr 1fr auto;
+        align-items: flex-end;
+    }
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    color: #bbb;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+input {
+    background: #121212;
+    border: 1px solid #444;
+    padding: 15px; /* Maior para facilitar o toque no celular */
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    -webkit-appearance: none; /* Remove estilos padrão do iOS */
+}
+
+button {
+    background: var(--primary);
+    color: #000;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.2s;
+    width: 100%; /* Botão largo no mobile */
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* --- AJUSTES DA TABELA --- */
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Permite deslizar a tabela para os lados no celular */
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid #444;
+    margin-top: 15px;
+    /* Adiciona um efeito de sombra suave para indicar que há mais conteúdo à direita */
+    background-image: linear-gradient(to right, var(--card-bg), var(--card-bg)), 
+                      linear-gradient(to right, var(--card-bg), var(--card-bg)), 
+                      linear-gradient(to right, rgba(0,0,0,0.25), rgba(255,255,255,0)), 
+                      linear-gradient(to left, rgba(0,0,0,0.25), rgba(255,255,255,0));
+    background-position: left center, right center, left center, right center;
+    background-repeat: no-repeat;
+    background-size: 20px 100%, 20px 100%, 10px 100%, 10px 100%;
+    background-attachment: local, local, scroll, scroll;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 500px; /* Garante que a tabela não esmague os números */
+}
+
+th, td {
+    padding: 12px 8px;
+    text-align: center;
+    border-bottom: 1px solid #3d3d3d;
+    font-size: 0.9rem;
+}
+
+th {
+    background: #252525;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.nota {
+    font-size: 0.75rem;
+    color: #777;
+    margin-top: 15px;
+    text-align: center;
+}
