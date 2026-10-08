@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Spine de Flechas</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        // Light Mode Palette (Blue & White)
+                        light: {
+                            bg: '#F8FAFC',
+                            card: '#FFFFFF',
+                            primary: '#2563EB', // Royal Blue
+                            primaryHover: '#1D4ED8',
+                            secondary: '#60A5FA',
+                            accent: '#3B82F6',
+                            text: '#0F172A',
+                            textMuted: '#64748B',
+                            border: '#E2E8F0',
+                            inputBg: '#F1F5F9'
+                        },
+                        // Dark Mode Palette (Black & Gold/Yellow)
+                        dark: {
+                            bg: '#0D0D0D', // Deep Matte Black
+                            card: '#1A1A1A', // Sharp Dark Card
+                            cardHover: '#242424',
+                            primary: '#FFC107', // Vibrant Amber/Yellow
+                            primaryHover: '#FFB300',
+                            accent: '#FFD54F',
+                            text: '#F5F5F5',
+                            textMuted: '#A3A3A3',
+                            border: '#333333',
+                            inputBg: '#262626'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Smooth color transitions for theme toggle */
+        body,
+        div,
+        input,
+        select,
+        button,
+        span,
+        h1,
+        h2,
+        h3,
+        p,
+        label,
+        table,
+        tr,
+        td {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Fallback explicit overrides for Dark Mode to ensure zero white background leakage */
+        .dark {
+            background-color: #0D0D0D !important;
+            color: #F5F5F5 !important;
+        }
+
+        .dark .glass-card-light,
+        .dark .glass-card-dark,
+        .dark .bg-light-card,
+        .dark .bg-light-bg,
+        .dark .bg-gradient-to-r {
+            background-color: #1A1A1A !important;
+            background-image: none !important;
+            border-color: #333333 !important;
+            color: #F5F5F5 !important;
+        }
+
+        .dark input[type="number"],
+        .dark select,
+        .dark .bg-light-inputBg {
+            background-color: #262626 !important;
+            border-color: #404040 !important;
+            color: #FFC107 !important;
+        }
+
+        .dark option {
+            background-color: #1A1A1A !important;
+            color: #F5F5F5 !important;
+        }
+
+        /* Custom range slider styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        /* Light Mode Slider Thumb */
+        .light input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #2563EB;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+            transition: transform 0.1s ease;
+        }
+
+        .light input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        /* Dark Mode Slider Thumb */
+        .dark input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #FFC107;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.5);
+            transition: transform 0.1s ease;
+        }
+
+        .dark input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        /* Track style */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .light input[type=range]::-webkit-slider-runnable-track {
+            background: #E2E8F0;
+        }
+
+        .dark input[type=range]::-webkit-slider-runnable-track {
+            background: #333333 !important;
+        }
+
+        /* Glassmorphism custom effects */
+        .glass-card-light {
+            background: #FFFFFF;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.08);
+        }
+
+        .glass-card-dark {
+            background: #1A1A1A;
+            border: 1px solid #333333;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Tooltip animation */
+        .tooltip-box {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+
+        .has-tooltip:hover .tooltip-box {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-slate-50 text-slate-900 dark:bg-neutral-950 dark:text-neutral-100 min-h-screen font-sans flex flex-col justify-between selection:bg-blue-500 selection:text-white dark:selection:bg-amber-400 dark:selection:text-black">
+
+    <div>
+        <!-- Navigation / Header -->
+        <header
+            class="w-full border-b border-slate-200 dark:border-neutral-800 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md sticky top-0 z-40">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+                <!-- Brand Logo & Title -->
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="w-11 h-11 rounded-xl bg-blue-600 dark:bg-amber-400 flex items-center justify-center text-white dark:text-black shadow-lg shadow-blue-500/20 dark:shadow-amber-500/20">
+                        <i class="fa-solid fa-bullseye text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2">
+                            <span>Spine</span><span class="text-blue-600 dark:text-amber-400">Calculator</span>
+                        </h1>
+                        <p class="text-xs text-slate-500 dark:text-neutral-400 hidden sm:block">Calculadora de Rigidez
+                            de Flechas para Tiro com Arco</p>
+                    </div>
+                </div>
+
+                <!-- Theme Toggle & Info Button -->
+                <div class="flex items-center space-x-3">
+                    <button id="themeToggleBtn" aria-label="Alternar Tema"
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 transition-all font-medium text-sm">
+                        <i id="themeIcon" class="fa-solid fa-moon text-blue-600 dark:text-amber-400 text-base"></i>
+                        <span id="themeText" class="hidden md:inline">Modo Escuro</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+
+            <div
+                class="mb-8 text-center sm:text-left flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-blue-50/60 dark:bg-neutral-900/80 border border-blue-100 dark:border-neutral-800">
+                <div>
+                    <h2 class="text-2xl font-bold mb-1">Encontre a flecha perfeita para seu arco</h2>
+                    <p class="text-sm text-slate-500 dark:text-neutral-400">Ajuste os parâmetros abaixo para calcular o
+                        Spine Estático e Dinâmico ideal para o seu equipamento.</p>
+                </div>
+                <div
+                    class="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 self-start md:self-center">
+                    <i class="fa-solid fa-circle-info text-blue-600 dark:text-amber-400"></i>
+                    <span>Padrão ASTM / ATA</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+                <!-- Left Column: Input Form (7 cols) -->
+                <div
+                    class="lg:col-span-7 bg-white dark:bg-neutral-900 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl border border-slate-200 dark:border-neutral-800">
+                    <div
+                        class="border-b border-slate-200 dark:border-neutral-800 pb-4 mb-2 flex justify-between items-center">
+                        <h3 class="text-lg font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-blue-600 dark:text-amber-400"></i>
+                            Parâmetros do Arco e Flecha
+                        </h3>
+                        <button id="resetBtn"
+                            class="text-xs text-slate-500 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-amber-400 flex items-center gap-1 transition">
+                            <i class="fa-solid fa-rotate-left"></i> Restaurar
+                        </button>
+                    </div>
+
+                    <!-- 1. Tipo de Arco -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold flex items-center justify-between">
+                            <span>Tipo de Arco</span>
+                            <span
+                                class="has-tooltip cursor-pointer text-slate-500 dark:text-neutral-400 text-xs flex items-center gap-1">
+                                <i class="fa-regular fa-circle-question"></i> O que é?
+                                <div
+                                    class="tooltip-box absolute z-30 p-3 bg-slate-900 text-white text-xs rounded-xl shadow-xl max-w-xs -ml-32 mt-2 font-normal border border-slate-700">
+                                    Arcos compostos transferem energia com mais eficiência, exigindo flechas
+                                    significativamente mais rígidas (spine menor).
+                                </div>
+                            </span>
+                        </label>
+                        <div class="grid grid-cols-3 gap-2 sm:gap-3">
+                            <button type="button" data-bow="recurve"
+                                class="bow-type-btn active flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 transition text-center group">
+                                <i
+                                    class="fa-solid fa-bow-arrow text-xl mb-2 group-hover:scale-110 transition-transform"></i>
+                                <span class="text-xs font-semibold">Recurvo</span>
+                            </button>
+                            <button type="button" data-bow="compound"
+                                class="bow-type-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 transition text-center group">
+                                <i
+                                    class="fa-solid fa-crosshairs text-xl mb-2 group-hover:scale-110 transition-transform"></i>
+                                <span class="text-xs font-semibold">Composto</span>
+                            </button>
+                            <button type="button" data-bow="traditional"
+                                class="bow-type-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 transition text-center group">
+                                <i class="fa-solid fa-tree text-xl mb-2 group-hover:scale-110 transition-transform"></i>
+                                <span class="text-xs font-semibold">Tradicional</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Peso de Puxada (Draw Weight) -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label for="drawWeight" class="text-sm font-semibold">Peso de Puxada (Draw Weight)</label>
+                            <div class="flex items-center gap-1">
+                                <input type="number" id="drawWeightInput" min="15" max="90" value="40"
+                                    class="w-16 px-2 py-1 text-center text-sm rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-800 font-bold text-blue-600 dark:text-amber-400 focus:outline-none">
+                                <span class="text-xs text-slate-500 dark:text-neutral-400 font-medium">lbs</span>
+                            </div>
+                        </div>
+                        <input type="range" id="drawWeight" min="15" max="90" value="40" step="1">
+                        <div class="flex justify-between text-xs text-slate-500 dark:text-neutral-400">
+                            <span>15 lbs</span>
+                            <span>52 lbs</span>
+                            <span>90 lbs</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Comprimento da Flecha (Draw Length) -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label for="drawLength" class="text-sm font-semibold">Comprimento da Flecha (AMO)</label>
+                            <div class="flex items-center gap-1">
+                                <input type="number" id="drawLengthInput" min="22" max="34" value="28" step="0.5"
+                                    class="w-16 px-2 py-1 text-center text-sm rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-800 font-bold text-blue-600 dark:text-amber-400 focus:outline-none">
+                                <span class="text-xs text-slate-500 dark:text-neutral-400 font-medium">pol (in)</span>
+                            </div>
+                        </div>
+                        <input type="range" id="drawLength" min="22" max="34" value="28" step="0.5">
+                        <div class="flex justify-between text-xs text-slate-500 dark:text-neutral-400">
+                            <span>22"</span>
+                            <span>28"</span>
+                            <span>34"</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Peso da Ponta (Point Weight) -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label for="pointWeight" class="text-sm font-semibold">Peso da Ponta (Point Weight)</label>
+                            <div class="flex items-center gap-1">
+                                <input type="number" id="pointWeightInput" min="60" max="300" value="100" step="5"
+                                    class="w-20 px-2 py-1 text-center text-sm rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-800 font-bold text-blue-600 dark:text-amber-400 focus:outline-none">
+                                <span class="text-xs text-slate-500 dark:text-neutral-400 font-medium">grains</span>
+                            </div>
+                        </div>
+                        <input type="range" id="pointWeight" min="60" max="300" value="100" step="5">
+                        <div class="flex justify-between text-xs text-slate-500 dark:text-neutral-400">
+                            <span>60 gr</span>
+                            <span>100 gr</span>
+                            <span>300 gr</span>
+                        </div>
+                    </div>
+
+                    <!-- 5. Material da Haste -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold">Material do Tubo (Shaft Material)</label>
+                        <select id="materialSelect"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-800 focus:outline-none font-medium text-sm text-slate-900 dark:text-neutral-100">
+                            <option value="carbon" selected
+                                class="bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-100">Carbono (Alta
+                                Restauração / Padrão Moderno)</option>
+                            <option value="aluminum"
+                                class="bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-100">Alumínio
+                                (Consistência & Precisão Indoor)</option>
+                            <option value="wood"
+                                class="bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-100">Madeira
+                                (Tradicional / Tradish)</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <!-- Right Column: Results & Analytics (5 cols) -->
+                <div class="lg:col-span-5 space-y-6">
+
+                    <!-- Main Spine Display Card -->
+                    <div
+                        class="bg-white dark:bg-neutral-900 rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden shadow-xl border-2 border-blue-500/20 dark:border-amber-400/30">
+                        <div
+                            class="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-blue-500/10 dark:bg-amber-400/10 blur-xl">
+                        </div>
+
+                        <span
+                            class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-500/10 dark:bg-amber-400/20 text-blue-600 dark:text-amber-400 mb-3">
+                            Spine Recomendado
+                        </span>
+
+                        <!-- Spine Number Display -->
+                        <div class="my-3">
+                            <span id="spineOutput"
+                                class="text-6xl sm:text-7xl font-black tracking-tight text-blue-600 dark:text-amber-400 transition-all">
+                                500
+                            </span>
+                            <span
+                                class="block text-xs uppercase tracking-widest text-slate-500 dark:text-neutral-400 font-semibold mt-1">
+                                Spine Estático ASTM
+                            </span>
+                        </div>
+
+                        <!-- Dynamic Stiffness Status Indicator -->
+                        <div
+                            class="mt-4 p-3 rounded-2xl bg-slate-100 dark:bg-neutral-800 flex items-center justify-between px-4">
+                            <span class="text-xs font-semibold text-slate-500 dark:text-neutral-400">Comportamento
+                                Estável:</span>
+                            <span id="stiffnessBadge"
+                                class="text-xs font-bold px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                Ideal / Equilibrado
+                            </span>
+                        </div>
+
+                        <!-- Range interval recommendation -->
+                        <div
+                            class="mt-4 pt-4 border-t border-slate-200 dark:border-neutral-800 text-xs text-slate-500 dark:text-neutral-400 flex justify-between">
+                            <span>Faixa Sugerida: <strong id="spineRangeText"
+                                    class="text-slate-900 dark:text-neutral-100">480 - 520</strong></span>
+                            <span>Deflexão: <strong id="deflectionText"
+                                    class="text-slate-900 dark:text-neutral-100">0.500"</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Breakdown & Factors Impact Card -->
+                    <div
+                        class="bg-white dark:bg-neutral-900 rounded-3xl p-6 space-y-4 shadow-xl border border-slate-200 dark:border-neutral-800">
+                        <h4
+                            class="text-sm font-bold flex items-center gap-2 border-b border-slate-200 dark:border-neutral-800 pb-3">
+                            <i class="fa-solid fa-chart-pie text-blue-600 dark:text-amber-400"></i>
+                            Análise de Fatores Dinâmicos
+                        </h4>
+
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-slate-500 dark:text-neutral-400">Impacto do Comprimento (+30 spine
+                                        / pol)</span>
+                                    <span id="lengthFactorText" class="font-semibold">+0</span>
+                                </div>
+                                <div class="w-full h-2 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                                    <div id="lengthBar"
+                                        class="h-full bg-blue-600 dark:bg-amber-400 transition-all duration-300"
+                                        style="width: 50%;"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-slate-500 dark:text-neutral-400">Ajuste por Peso de Ponta (+/-
+                                        spine)</span>
+                                    <span id="pointFactorText" class="font-semibold">0</span>
+                                </div>
+                                <div class="w-full h-2 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                                    <div id="pointBar"
+                                        class="h-full bg-blue-600 dark:bg-amber-400 transition-all duration-300"
+                                        style="width: 50%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="p-3 rounded-xl bg-blue-50 dark:bg-amber-400/5 border border-blue-100 dark:border-amber-400/10 text-xs leading-relaxed text-slate-500 dark:text-neutral-400">
+                            <i class="fa-solid fa-lightbulb text-blue-600 dark:text-amber-400 mr-1"></i>
+                            <strong>Dica Pro:</strong> Pontas mais pesadas e hastes mais longas tornam a flecha
+                            dinamicamente mais flexível (exigindo um número de spine menor/mais rígido).
+                        </div>
+                    </div>
+
+                    <!-- Reference Quick Guide -->
+                    <div
+                        class="bg-white dark:bg-neutral-900 rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-neutral-800">
+                        <h4 class="text-sm font-bold mb-3 flex items-center justify-between">
+                            <span>Tabela Rápida de Referência</span>
+                            <span class="text-[10px] text-slate-500 dark:text-neutral-400">Flecha 28"</span>
+                        </h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr
+                                        class="border-b border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-neutral-400">
+                                        <th class="py-2">Puxada (lbs)</th>
+                                        <th class="py-2">Recurvo</th>
+                                        <th class="py-2">Composto</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200 dark:divide-neutral-800 text-xs">
+                                    <tr>
+                                        <td class="py-2 font-medium">25 - 35 lbs</td>
+                                        <td class="py-2">700 - 900</td>
+                                        <td class="py-2">500 - 600</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 font-medium">35 - 45 lbs</td>
+                                        <td class="py-2">500 - 600</td>
+                                        <td class="py-2">400 - 500</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 font-medium">45 - 55 lbs</td>
+                                        <td class="py-2">400 - 500</td>
+                                        <td class="py-2">340 - 400</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 font-medium">55+ lbs</td>
+                                        <td class="py-2">300 - 400</td>
+                                        <td class="py-2">250 - 340</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer
+        class="w-full border-t border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 py-6 mt-12 text-xs text-center text-slate-500 dark:text-neutral-400">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p>© 2026 Arrow Spine Calculator - Ferramenta de Precisão para Arquearia.</p>
+            <p class="flex items-center gap-1">
+                <span>Desenvolvido com</span>
+                <i class="fa-solid fa-heart text-red-500"></i>
+                <span>para Arquearia Esportiva</span>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // State Management
+        const state = {
+            bowType: 'recurve', // recurve, compound, traditional
+            drawWeight: 40,
+            drawLength: 28,
+            pointWeight: 100,
+            material: 'carbon',
+            theme: 'light'
+        };
+
+        // DOM Elements
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+        const htmlElem = document.documentElement;
+
+        const bowTypeBtns = document.querySelectorAll('.bow-type-btn');
+        const drawWeightRange = document.getElementById('drawWeight');
+        const drawWeightInput = document.getElementById('drawWeightInput');
+        const drawLengthRange = document.getElementById('drawLength');
+        const drawLengthInput = document.getElementById('drawLengthInput');
+        const pointWeightRange = document.getElementById('pointWeight');
+        const pointWeightInput = document.getElementById('pointWeightInput');
+        const materialSelect = document.getElementById('materialSelect');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const spineOutput = document.getElementById('spineOutput');
+        const stiffnessBadge = document.getElementById('stiffnessBadge');
+        const spineRangeText = document.getElementById('spineRangeText');
+        const deflectionText = document.getElementById('deflectionText');
+
+        const lengthFactorText = document.getElementById('lengthFactorText');
+        const pointFactorText = document.getElementById('pointFactorText');
+        const lengthBar = document.getElementById('lengthBar');
+        const pointBar = document.getElementById('pointBar');
+
+        // Theme Toggle Logic
+        function toggleTheme() {
+            if (htmlElem.classList.contains('dark')) {
+                htmlElem.classList.remove('dark');
+                htmlElem.classList.add('light');
+                themeIcon.className = 'fa-solid fa-moon text-blue-600';
+                themeText.textContent = 'Modo Escuro';
+                state.theme = 'light';
+            } else {
+                htmlElem.classList.remove('light');
+                htmlElem.classList.add('dark');
+                themeIcon.className = 'fa-solid fa-sun text-amber-400';
+                themeText.textContent = 'Modo Claro';
+                state.theme = 'dark';
+            }
+            updateBowBtnStyles();
+        }
+
+        themeToggleBtn.addEventListener('click', toggleTheme);
+
+        // Update Bow Button UI Styling based on state and current active theme
+        function updateBowBtnStyles() {
+            bowTypeBtns.forEach(btn => {
+                const bow = btn.getAttribute('data-bow');
+                if (bow === state.bowType) {
+                    btn.className = "bow-type-btn active flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 transition text-center group bg-blue-50 border-blue-600 text-blue-600 dark:bg-amber-400/10 dark:border-amber-400 dark:text-amber-400 shadow-md";
+                } else {
+                    btn.className = "bow-type-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 hover:border-blue-500 dark:hover:border-amber-400 transition text-center group";
+                }
+            });
+        }
+
+        // Bow Type Selector Handler
+        bowTypeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.bowType = btn.getAttribute('data-bow');
+                updateBowBtnStyles();
+                calculateSpine();
+            });
+        });
+
+        // Sync inputs and ranges
+        function bindDualInput(rangeElem, inputElem, stateKey) {
+            rangeElem.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                inputElem.value = val;
+                state[stateKey] = val;
+                calculateSpine();
+            });
+
+            inputElem.addEventListener('change', (e) => {
+                let val = parseFloat(e.target.value);
+                const min = parseFloat(rangeElem.min);
+                const max = parseFloat(rangeElem.max);
+
+                if (isNaN(val)) val = min;
+                if (val < min) val = min;
+                if (val > max) val = max;
+
+                inputElem.value = val;
+                rangeElem.value = val;
+                state[stateKey] = val;
+                calculateSpine();
+            });
+        }
+
+        bindDualInput(drawWeightRange, drawWeightInput, 'drawWeight');
+        bindDualInput(drawLengthRange, drawLengthInput, 'drawLength');
+        bindDualInput(pointWeightRange, pointWeightInput, 'pointWeight');
+
+        materialSelect.addEventListener('change', (e) => {
+            state.material = e.target.value;
+            calculateSpine();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            state.bowType = 'recurve';
+            state.drawWeight = 40;
+            state.drawLength = 28;
+            state.pointWeight = 100;
+            state.material = 'carbon';
+
+            drawWeightRange.value = 40;
+            drawWeightInput.value = 40;
+            drawLengthRange.value = 28;
+            drawLengthInput.value = 28;
+            pointWeightRange.value = 100;
+            pointWeightInput.value = 100;
+            materialSelect.value = 'carbon';
+
+            updateBowBtnStyles();
+            calculateSpine();
+        });
+
+        // Main Spine Calculation Engine
+        function calculateSpine() {
+            let baseSpine = 0;
+
+            if (state.bowType === 'compound') {
+                baseSpine = 1000 - (state.drawWeight * 9.8);
+            } else if (state.bowType === 'recurve') {
+                baseSpine = 1250 - (state.drawWeight * 14.5);
+            } else {
+                baseSpine = 1350 - (state.drawWeight * 13.5);
+            }
+
+            const lengthDiff = state.drawLength - 28;
+            const lengthAdjustment = lengthDiff * 35;
+            let calculatedSpine = baseSpine - lengthAdjustment;
+
+            const pointDiff = state.pointWeight - 100;
+            const pointAdjustment = (pointDiff / 25) * 20;
+            calculatedSpine = calculatedSpine - pointAdjustment;
+
+            if (state.material === 'aluminum') {
+                calculatedSpine *= 0.98;
+            } else if (state.material === 'wood') {
+                calculatedSpine *= 1.05;
+            }
+
+            let finalSpine = Math.round(calculatedSpine / 10) * 10;
+
+            if (finalSpine < 230) finalSpine = 230;
+            if (finalSpine > 1200) finalSpine = 1200;
+
+            animateNumber(spineOutput, finalSpine);
+
+            const deflection = (finalSpine / 1000).toFixed(3);
+            deflectionText.textContent = `${deflection}"`;
+
+            spineRangeText.textContent = `${finalSpine - 20} - ${finalSpine + 20}`;
+
+            const lengthVal = Math.round(lengthAdjustment);
+            lengthFactorText.textContent = lengthVal >= 0 ? `+${lengthVal}` : `${lengthVal}`;
+            const lengthPercent = Math.min(Math.max(((state.drawLength - 22) / (34 - 22)) * 100, 10), 100);
+            lengthBar.style.width = `${lengthPercent}%`;
+
+            const pointVal = Math.round(pointAdjustment);
+            pointFactorText.textContent = pointVal >= 0 ? `+${pointVal}` : `${pointVal}`;
+            const pointPercent = Math.min(Math.max(((state.pointWeight - 60) / (300 - 60)) * 100, 10), 100);
+            pointBar.style.width = `${pointPercent}%`;
+
+            if (finalSpine <= 340) {
+                stiffnessBadge.textContent = "Extremamente Rígida (Alta Carga)";
+            } else if (finalSpine <= 500) {
+                stiffnessBadge.textContent = "Rígida / Alta Performance";
+            } else if (finalSpine <= 700) {
+                stiffnessBadge.textContent = "Ideal / Equilibrada";
+            } else {
+                stiffnessBadge.textContent = "Flexível / Cargas Leves";
+            }
+        }
+
+        function animateNumber(element, targetVal) {
+            const currentVal = parseInt(element.textContent) || targetVal;
+            if (currentVal === targetVal) return;
+
+            const duration = 200;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const value = Math.round(currentVal + (targetVal - currentVal) * progress);
+                element.textContent = value;
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        window.onload = function () {
+            updateBowBtnStyles();
+            calculateSpine();
+        };
+    </script>
+</body>
+
+</html>
